@@ -1,0 +1,8 @@
+services:
+  pedidos-svc:
+    build: .
+    image: duoc/jv0101-foodgo-pedidos:1.0.0
+    container_name: foodgo-pedidos-svc
+    ports:
+      - "${PORT:-8083}:8083"
+    restart: unless-stopped
