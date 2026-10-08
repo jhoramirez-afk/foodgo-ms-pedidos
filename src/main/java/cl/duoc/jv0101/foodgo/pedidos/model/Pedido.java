@@ -1,5 +1,11 @@
 package cl.duoc.jv0101.foodgo.pedidos.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,6 +32,11 @@ public class Pedido {
     @Column
     private BigDecimal total;
 
+    @Valid
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("pedido-detalles")
+    private List<DetallePedido> detalles = new ArrayList<>();
+
     public Long getId() { return id; }
 
     public void setId(Long id) { this.id = id; }
@@ -42,4 +53,24 @@ public class Pedido {
 
     public void setTotal(BigDecimal total) { this.total = total; }
 
+    public List<DetallePedido> getDetalles() {
+        return detalles;
+    }
+
+    public void setDetalles(List<DetallePedido> items) {
+        this.detalles.clear();
+        if (items != null) {
+            items.forEach(this::addDetallePedido);
+        }
+    }
+
+    public void addDetallePedido(DetallePedido item) {
+        detalles.add(item);
+        item.setPedido(this);
+    }
+
+    public void removeDetallePedido(DetallePedido item) {
+        detalles.remove(item);
+        item.setPedido(null);
+    }
 }
