@@ -3,10 +3,12 @@ package cl.duoc.jv0101.foodgo.pedidos.service;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import cl.duoc.jv0101.foodgo.pedidos.model.Pedido;
 import cl.duoc.jv0101.foodgo.pedidos.repository.PedidoRepository;
 
 @Service
+@Transactional
 public class PedidoService {
 
     private final PedidoRepository repository;
@@ -15,15 +17,18 @@ public class PedidoService {
         this.repository = repository;
     }
 
+    @Transactional(readOnly = true)
     public List<Pedido> findAll() {
         return repository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Pedido> findById(Long id) {
         return repository.findById(id);
     }
 
     public Pedido create(Pedido recurso) {
+        recurso.setId(null);
         return repository.save(recurso);
     }
 
