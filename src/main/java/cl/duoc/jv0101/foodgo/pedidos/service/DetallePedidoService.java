@@ -40,7 +40,9 @@ public class DetallePedidoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id " + pedidoId));
         recurso.setId(null);
         recurso.setPedido(pedido);
-        return repository.save(recurso);
+        DetallePedido guardado = repository.save(recurso);
+        recalcularTotal(pedido);
+        return guardado;
     }
 
     public DetallePedido update(Long id, DetallePedido datos) {
@@ -49,11 +51,19 @@ public class DetallePedidoService {
         existente.setNombreProducto(datos.getNombreProducto());
         existente.setCantidad(datos.getCantidad());
         existente.setPrecioUnitario(datos.getPrecioUnitario());
-        return repository.save(existente);
+        DetallePedido guardado = repository.save(existente);
+        recalcularTotal(existente.getPedido());
+        return guardado;
     }
 
     public void delete(Long id) {
         DetallePedido existente = findById(id);
+        Pedido pedido = existente.getPedido();
         repository.delete(existente);
+        recalcularTotal(pedido);
+    }
+    private void recalcularTotal(Pedido pedido) {
+        pedido.setTotal(PedidoService.calcularTotal(repository.findByPedido_Id(pedido.getId())));
+        // La entidad está administrada; JPA persiste el cambio al confirmar la transacción.
     }
 }
