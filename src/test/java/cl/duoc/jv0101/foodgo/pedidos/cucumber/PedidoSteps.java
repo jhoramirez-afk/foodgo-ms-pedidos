@@ -33,10 +33,10 @@ public class PedidoSteps {
         return "http://localhost:" + port + "/api/pedidos";
     }
 
-    private HttpEntity<Map<String, String>> body(String valor) {
+    private HttpEntity<Map<String, Object>> body(String valor) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity<>(Map.of("cliente", valor), headers);
+        return new HttpEntity<>(Map.of("cliente", valor, "restaurante", "La Cocina de Barrio"), headers);
     }
 
     @Given("el servicio {string} está disponible")
