@@ -1,5 +1,13 @@
 package cl.duoc.jv0101.foodgo.pedidos.model;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,10 +18,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
@@ -25,19 +29,24 @@ public class DetallePedido {
     private Long id;
 
     @NotNull(message = "Producto es obligatorio")
+    @Positive(message = "Producto debe ser mayor que cero")
     @Column(nullable = false)
     private Long productoId;
 
-    @NotBlank(message = "NombreProducto es obligatorio")
+    @NotBlank(message = "Nombre del producto es obligatorio")
+    @Size(max = 255, message = "El campo admite hasta 255 caracteres")
     @Column(nullable = false)
     private String nombreProducto;
 
-    @Min(value = 1, message = "El valor mínimo es 1")
-    @Column
+    @NotNull(message = "Cantidad es obligatoria")
+    @Min(value = 1, message = "La cantidad mínima es 1")
+    @Column(nullable = false)
     private Integer cantidad;
 
-    @DecimalMin(value = "0.0", inclusive = true, message = "El valor no puede ser negativo")
-    @Column
+    @NotNull(message = "Precio unitario es obligatorio")
+    @DecimalMin(value = "1", message = "Precio unitario debe ser mayor que cero")
+    @Digits(integer = 9, fraction = 0, message = "El importe debe expresarse en pesos CLP enteros, hasta 9 dígitos")
+    @Column(precision = 9, scale = 0)
     private BigDecimal precioUnitario;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
