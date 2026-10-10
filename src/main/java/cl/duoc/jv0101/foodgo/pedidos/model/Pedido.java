@@ -1,5 +1,11 @@
 package cl.duoc.jv0101.foodgo.pedidos.model;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToMany;
@@ -12,7 +18,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 
 
@@ -24,13 +29,20 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El cliente es obligatorio")
+    @NotBlank(message = "Cliente es obligatorio")
+    @Size(max = 255, message = "El campo admite hasta 255 caracteres")
     @Column(nullable = false)
     private String cliente;
-    @Column
+    @NotBlank(message = "Restaurante es obligatorio")
+    @Size(max = 255, message = "El campo admite hasta 255 caracteres")
+    @Column(nullable = false)
     private String restaurante;
-    @Column
-    private BigDecimal total;
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
+    @NotNull
+    @DecimalMin("0")
+    @Digits(integer = 12, fraction = 0)
+    @Column(nullable = false, precision = 12, scale = 0)
+    private BigDecimal total = BigDecimal.ZERO;
 
     @Valid
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)

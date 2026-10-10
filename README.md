@@ -25,7 +25,7 @@ controller -> service -> repository -> model -> base de datos
 ```
 
 El dominio implementa una relación JPA bidireccional **@OneToMany / @ManyToOne** entre `Pedido` y `DetallePedido`.
-Las referencias hacia otros microservicios se mantienen como identificadores (`...Id`) para evitar acoplamiento de bases de datos entre dominios.
+Las relaciones JPA pertenecen a la base de datos del propio servicio. Los campos que referencian otros dominios son referencias declarativas; no consultan otras API. Postman enlaza los ID reales en el escenario académico.
 
 ## Endpoints REST
 
@@ -46,9 +46,8 @@ Las referencias hacia otros microservicios se mantienen como identificadores (`.
 
 ```json
 {
-  "cliente": "Cliente EP02",
-  "restaurante": "Restaurante EP02",
-  "total": 12990
+  "cliente": "Camila Soto",
+  "restaurante": "La Cocina de Barrio"
 }
 ```
 
@@ -57,9 +56,9 @@ Las referencias hacia otros microservicios se mantienen como identificadores (`.
 ```json
 {
   "productoId": 1,
-  "nombreProducto": "Hamburguesa",
+  "nombreProducto": "Hamburguesa de vacuno con papas",
   "cantidad": 2,
-  "precioUnitario": 9990.0
+  "precioUnitario": 9990
 }
 ```
 
@@ -78,7 +77,6 @@ Requisitos: JDK 21 y Maven 3.9+.
 ```bash
 git clone https://github.com/jhoramirez-afk/foodgo-ms-pedidos.git
 cd foodgo-ms-pedidos
-git switch develop
 mvn clean install
 mvn spring-boot:run
 ```
@@ -131,10 +129,36 @@ El perfil local H2 guarda los datos en `data/` y los conserva al reiniciar. No s
 
 Ejecutar `mvn clean install` para compilar, ejecutar las pruebas y generar el JAR.
 
-Se conserva el contrato de campos de EP01. JaCoCo verifica un mínimo de 80% de líneas del código de aplicación (excluye el arranque), además de producir el informe. Se mantienen las pruebas unitarias y los escenarios Cucumber existentes.
+Se conservan las rutas REST. Se refuerza la validación del contrato para la EP02. JaCoCo verifica un mínimo de 80% de líneas del código de aplicación (excluye el arranque), además de producir el informe. Se mantienen las pruebas unitarias y los escenarios Cucumber existentes.
 
 La guía `docs/DEMO_EP02.md` incluye SQL, persistencia tras reiniciar y un guion para el video. Ejecutar la colección Postman en orden: usa IDs reales y verifica HTTP, errores y actualizaciones.
 
 ## Revisión de la actualización
 
-La EP02 se propone desde `develop` hacia `main` mediante un pull request. El propietario revisa los cambios y ejecuta las pruebas antes de fusionarlo. Mientras el PR permanezca abierto, clonar y ejecutar `git switch develop` para probar la EP02. Los commits conservan fechas reales del desarrollo.
+Los cambios de integridad y ejemplos están en `feature/ep02-reglas-delivery`. Revisar el PR antes de integrar en `develop` y después en `main`. Para probar una propuesta abierta: `git switch feature/ep02-reglas-delivery`. Los commits conservan fechas reales.
+
+## Reglas del dominio para la EP02
+
+Cliente y restaurante obligatorios. Cada detalle exige producto positivo, cantidad de al menos 1 y precio positivo. `total` es de solo lectura: se calcula al crear el pedido y al crear, modificar o eliminar detalles. Un pedido sin detalles tiene total 0. PUT del pedido actualiza cliente y restaurante; los detalles se editan en sus propias rutas.
+
+Los importes usan pesos chilenos enteros. Se valida formato e integridad, no identidad de personas ni direcciones externas. Los datos de demostración son ficticios. Campos demasiado largos devuelven 400 antes de llegar a la BD.
+
+## MySQL local con Workbench
+
+Workbench es el cliente SQL. El servicio se conecta al servidor MySQL mediante Connector/J. Crear previamente el esquema `foodgo_pedidos` y otorgar permisos al usuario elegido. En el equipo de desarrollo la instancia FoodGo usa el puerto 3307. Para otro equipo, usar su puerto y usuario correspondientes.
+
+PowerShell (no guardar la contraseña en Git):
+
+```powershell
+$env:DB_HOST = '127.0.0.1'
+$env:DB_PORT = '3307'
+$env:DB_NAME = 'foodgo_pedidos'
+$env:DB_USER = 'foodgo_ep02'
+$claveMySQL = Read-Host 'Contraseña MySQL' -AsSecureString
+$env:DB_PASSWORD = [Net.NetworkCredential]::new('', $claveMySQL).Password
+mvn clean install
+mvn package
+java -jar target/pedidos-svc-2.0.0.jar --spring.profiles.active=mysql
+```
+
+En Workbench, abrir el mismo host, puerto y esquema y ejecutar las consultas de `docs/DEMO_EP02.md`. Ejecutar la colección en orden. Para conservar el CRUD visible en la BD, detenerse después de la primera carpeta; la última comprueba DELETE y cascada.
